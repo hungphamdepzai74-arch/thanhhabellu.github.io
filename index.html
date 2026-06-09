@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thư Bí Mật</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .title {
+            font-size: 24px;
+            color: #d81b60;
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 10;
+        }
+        .envelope-wrapper {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            cursor: pointer;
+            z-index: 6;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: 6px;
+        }
+        .envelope-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #ff758c;
+            border-radius: 6px;
+            z-index: 1;
+        }
+        .letter {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            height: 190px;
+            background-color: #fffafb;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 25px;
+            font-size: 19px;
+            font-weight: bold;
+            color: #4a4a4a;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+        }
+        .envelope-front-bottom {
+            position: absolute;
+            bottom: 0; left: 0; width: 0; height: 0;
+            border-style: solid; border-width: 0 160px 120px 160px;
+            border-color: transparent transparent #ff8fa3 transparent;
+            z-index: 4;
+        }
+        .envelope-front-left {
+            position: absolute;
+            bottom: 0; left: 0; width: 0; height: 0;
+            border-style: solid; border-width: 220px 0 0 160px;
+            border-color: transparent transparent transparent #ffa4b6;
+            z-index: 4;
+        }
+        .envelope-front-right {
+            position: absolute;
+            bottom: 0; right: 0; width: 0; height: 0;
+            border-style: solid; border-width: 220px 160px 0 0;
+            border-color: transparent #ffa4b6 transparent transparent;
+            z-index: 4;
+        }
+        .flap {
+            position: absolute;
+            top: 0; left: 0; width: 0; height: 0;
+            border-style: solid; border-width: 120px 160px 0 160px;
+            border-color: #ff758c transparent transparent transparent;
+            z-index: 5;
+            transform-origin: top;
+            transition: transform 0.5s ease-in-out;
+        }
+        .wax-seal {
+            position: absolute;
+            top: 105px; left: 140px; width: 40px; height: 40px;
+            background: radial-gradient(circle, #ff1a40 0%, #c40024 100%);
+            border-radius: 50%;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.5);
+        }
+        .wax-seal::before {
+            content: "❤";
+            color: #ffccd5;
+            font-size: 22px;
+        }
+        .envelope-wrapper.open .flap { transform: rotateX(180deg); z-index: 1; }
+        .envelope-wrapper.open .wax-seal { transform: scale(0); opacity: 0; }
+        .envelope-wrapper.open .letter { opacity: 1; transform: translateY(-135px); z-index: 7; }
+        .hint {
+            margin-top: 30px;
+            color: #c44569;
+            font-size: 15px;
+            font-weight: bold;
+            z-index: 10;
+            background: rgba(255,255,255,0.6);
+            padding: 6px 18px;
+            border-radius: 20px;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-20px) translateX(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(105vh) translateX(120px) rotate(450deg); opacity: 0; }
+        }
+        .petal {
+            position: absolute;
+            pointer-events: none;
+            background: #ffb3c1;
+            border-radius: 150% 0 150% 150%;
+            transform: rotate(45deg);
+            animation: fall linear forwards;
+        }
+        .heart-fall {
+            position: absolute;
+            pointer-events: none;
+            color: #ff4d6d;
+            animation: fall linear forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="title" id="main-title">
+        Hãy mở nó ra.<br>Thư bí mật dành cho em 💖
+    </div>
+
+    <div class="envelope-wrapper" onclick="openEnvelope(event)">
+        <div class="envelope-back"></div>
+        <div class="letter">
+            Nội dung bức thư bí mật ở đây nè!<br>
+            Chúc em một ngày vui vẻ! 💌
+        </div>
+        <div class="envelope-front-left"></div>
+        <div class="envelope-front-right"></div>
+        <div class="envelope-front-bottom"></div>
+        <div class="flap"></div>
+        <div class="wax-seal"></div>
+    </div>
+
+    <div class="hint" id="hint-text">❤️ Chạm vào cục sáp trái tim để mở thư ❤️</div>
+
+    <script>
+        function createDroplets() {
+            const body = document.body;
+            setInterval(() => {
+                const petal = document.createElement('div');
+                petal.classList.add('petal');
+                petal.style.left = Math.random() * 100 + 'vw';
+                const size = Math.random() * 8 + 6;
+                petal.style.width = size + 'px';
+                petal.style.height = size + 'px';
+                petal.style.animationDuration = Math.random() * 3 + 4 + 's';
+                body.appendChild(petal);
+
+                const heart = document.createElement('div');
+                heart.classList.add('heart-fall');
+                heart.innerHTML = '❤';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.fontSize = Math.random() * 10 + 10 + 'px';
+                heart.style.animationDuration = Math.random() * 3 + 3 + 's';
+                body.appendChild(heart);
+
+                setTimeout(() => petal.remove(), 7000);
+                setTimeout(() => heart.remove(), 6000);
+            }, 350);
+        }
+        window.onload = createDroplets;
+
+        function openEnvelope(e) {
+            const wrapper = document.querySelector('.envelope-wrapper');
+            if (wrapper.classList.contains('open')) return;
+            wrapper.classList.add('open');
+            document.getElementById('main-title').innerHTML = "Bất ngờ chưa? 😘";
+            document.getElementById('hint-text').style.display = 'none';
+
+            const rect = wrapper.getBoundingClientRect();
+            const clickX = rect.left + rect.width / 2;
+            const clickY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 25; i++) {
+                const burstHeart = document.createElement('div');
+                burstHeart.classList.add('heart-fall');
+                burstHeart.innerHTML = '❤';
+                burstHeart.style.left = clickX + 'px';
+                burstHeart.style.top = clickY + 'px';
+                burstHeart.style.fontSize = Math.random() * 15 + 10 + 'px';
+                burstHeart.style.animationDuration = '1s';
+                burstHeart.style.opacity = '1';
+                document.body.appendChild(burstHeart);
+                setTimeout(() => burstHeart.remove(), 1000);
+            }
+        }
+    </script>
+</body>
+</html>
